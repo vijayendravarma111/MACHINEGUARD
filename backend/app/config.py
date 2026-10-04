@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api"
     SECRET_KEY: str = "MACHINEGUARD_SECRET_KEY_INDUSTRIAL_2026"
     
-    # SQLite Database Configuration
+    # SQLite Database Configuration (Zero-setup local persistence)
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./machineguard.db")
 
     class Config:

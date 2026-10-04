@@ -4,11 +4,11 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from backend.app.core.database import get_db
-import backend.app.models.db_models as db_models
-import backend.app.schemas.pydantic_schemas as schemas
-from backend.app.services.state_engine import process_new_sensor_reading
-from backend.app.simulation.simulator import simulator_engine
+from backend.app.database import get_db
+import backend.app.models as db_models
+import backend.app.schemas as schemas
+from backend.app.services import process_new_sensor_reading
+from backend.app.simulation import simulator_engine
 from backend.app.ml.inference import ml_engine
 
 router = APIRouter()

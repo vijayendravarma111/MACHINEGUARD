@@ -3,7 +3,7 @@ import json
 import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-from backend.app.core.config import settings
+from backend.app.config import settings
 
 Base = declarative_base()
 
@@ -16,8 +16,6 @@ print(f"[Database] Connected to relational database at {settings.DATABASE_URL}")
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-
-
 def get_db():
     db = SessionLocal()
     try:
@@ -26,13 +24,11 @@ def get_db():
         db.close()
 
 def init_db():
-    # Import ORM models to register them with Base.metadata
-    import backend.app.models.db_models as db_models
+    import backend.app.models as db_models
     
     Base.metadata.create_all(bind=engine)
     print("[Database] Database tables verified / created.")
     
-    # Check if seed data needs to be populated
     db = SessionLocal()
     try:
         existing_ids = {m.machine_id for m in db.query(db_models.DBMachine).all()}
@@ -47,12 +43,10 @@ def init_db():
     finally:
         db.close()
 
-
 def seed_initial_data(db):
-    import backend.app.models.db_models as db_models
+    import backend.app.models as db_models
     now = datetime.datetime.now(datetime.timezone.utc)
     
-    # Clear existing if re-seeding to ensure fresh 8 machines
     db.query(db_models.DBMachine).delete()
     db.query(db_models.DBSensorReading).delete()
     db.query(db_models.DBPrediction).delete()
@@ -90,7 +84,6 @@ def seed_initial_data(db):
         ))
     db.add_all(machines)
 
-    # Initial sensor readings across machines
     readings = []
     for m in machines_data:
         mid = m[0]
@@ -126,7 +119,6 @@ def seed_initial_data(db):
         ))
     db.add_all(readings)
 
-    # Initial predictions
     preds = []
     sample_factors = json.dumps([
         {"factor_name": "Motor Torque Output", "impact_level": "HIGH", "human_explanation": "Elevated torque output under load increases mechanical strain.", "attribution_score": 0.38},
@@ -155,7 +147,6 @@ def seed_initial_data(db):
         ))
     db.add_all(preds)
 
-    # Initial alerts for degraded machines
     alerts = [
         db_models.DBAlert(
             machine_id="MOTOR-004",
@@ -184,7 +175,6 @@ def seed_initial_data(db):
     ]
     db.add_all(alerts)
 
-    # Initial maintenance records
     maint = [
         db_models.DBMaintenanceRecord(
             machine_id="MOTOR-001",
@@ -208,7 +198,6 @@ def seed_initial_data(db):
     ]
     db.add_all(maint)
 
-    # Model metadata
     meta = db_models.DBModelMetadata(
         version="v1.0.0",
         model_name="XGBoost (Production)",
@@ -224,5 +213,3 @@ def seed_initial_data(db):
 
     db.commit()
     print("[Database] Initial database seed with 8 machines successfully completed.")
-
-

@@ -3,8 +3,8 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 from backend.app.main import app
-from backend.app.core.database import init_db, SessionLocal
-from backend.app.models.db_models import DBMachine, DBAlert, DBMaintenanceRecord
+from backend.app.database import init_db, SessionLocal
+from backend.app.models import DBMachine, DBAlert, DBMaintenanceRecord
 from backend.app.ml.inference import ml_engine
 
 def run_verification():

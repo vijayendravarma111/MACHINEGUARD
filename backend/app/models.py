@@ -1,7 +1,7 @@
 import datetime
 from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey
 from sqlalchemy.orm import relationship
-from backend.app.core.database import Base
+from backend.app.database import Base
 
 class DBMachine(Base):
     __tablename__ = "machines"
