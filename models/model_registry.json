@@ -1,0 +1,91 @@
+{
+  "active_version": "v1.0.0",
+  "trained_at": "2026-09-06T20:37:21.228323",
+  "dataset_name": "ai4i2020.csv",
+  "dataset_size": 10000,
+  "features": [
+    "type_code",
+    "air_temperature_k",
+    "process_temperature_k",
+    "temp_difference_k",
+    "rotational_speed_rpm",
+    "torque_nm",
+    "tool_wear_min",
+    "power_w"
+  ],
+  "target": "machine_failure",
+  "diagnosis_targets": [
+    "TWF",
+    "HDF",
+    "PWF",
+    "OSF",
+    "RNF"
+  ],
+  "production_model": "XGBoost (Production)",
+  "feature_importances": {
+    "type_code": 0.0257,
+    "air_temperature_k": 0.0306,
+    "process_temperature_k": 0.0249,
+    "temp_difference_k": 0.0634,
+    "rotational_speed_rpm": 0.3293,
+    "torque_nm": 0.1603,
+    "tool_wear_min": 0.1825,
+    "power_w": 0.1833
+  },
+  "metrics": {
+    "Logistic Regression": {
+      "accuracy": 0.8533,
+      "precision": 0.1762,
+      "recall": 0.902,
+      "f1_score": 0.2949,
+      "roc_auc": 0.9451,
+      "pr_auc": 0.4983,
+      "confusion_matrix": [
+        [
+          1234,
+          215
+        ],
+        [
+          5,
+          46
+        ]
+      ]
+    },
+    "Random Forest": {
+      "accuracy": 0.992,
+      "precision": 0.898,
+      "recall": 0.8627,
+      "f1_score": 0.88,
+      "roc_auc": 0.9897,
+      "pr_auc": 0.9211,
+      "confusion_matrix": [
+        [
+          1444,
+          5
+        ],
+        [
+          7,
+          44
+        ]
+      ]
+    },
+    "XGBoost (Production)": {
+      "accuracy": 0.9747,
+      "precision": 0.5783,
+      "recall": 0.9412,
+      "f1_score": 0.7164,
+      "roc_auc": 0.9886,
+      "pr_auc": 0.9277,
+      "confusion_matrix": [
+        [
+          1414,
+          35
+        ],
+        [
+          3,
+          48
+        ]
+      ]
+    }
+  }
+}
