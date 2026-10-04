@@ -2,7 +2,7 @@
 
 **MACHINEGUARD** is a full-stack **Software Digital Twin platform** for industrial machine health monitoring, operational anomaly detection, failure risk prediction, and maintenance management.
 
-The platform ingests machine sensor telemetry, engineers domain-specific physical features, executes dual-model machine learning inference (**Isolation Forest** for anomaly detection and **XGBoost** for failure risk prediction), provides an interactive **What-If simulation lab**, and manages automated alert-to-maintenance workflows.
+The platform ingests machine sensor telemetry, engineers domain-specific physical features, executes dual-model machine learning inference (**Isolation Forest** for unsupervised anomaly detection and **XGBoost** for failure risk prediction, alongside a separate diagnosis model for failure type identification), provides an interactive **What-If simulation lab**, and manages automated alert-to-maintenance workflows.
 
 ---
 
@@ -13,7 +13,7 @@ This codebase directly supports the following project description:
 > **MACHINEGUARD – Predictive Maintenance | Python, FastAPI, XGBoost, Isolation Forest, SQLite, React**
 > - Built a **Digital Twin platform** for machine health monitoring, anomaly detection, and predictive maintenance.
 > - Implemented **Isolation Forest and XGBoost** with feature engineering, achieving **97.47% accuracy and 94.12% recall**.
-> - Developed **What-If simulation, automated alerts, and maintenance workflows** using FastAPI and a relational database.
+> - Developed **What-If simulation, automated alerts, and maintenance workflows** using FastAPI and SQLite.
 
 ---
 
@@ -26,9 +26,11 @@ Machine Sensor Data
         ↓
 Feature Engineering (Thermal Delta ΔT, Mechanical Power P)
         ↓
-  Isolation Forest (Anomaly Detection: NORMAL / ABNORMAL)
+  Isolation Forest (Unsupervised Anomaly Detection: NORMAL / ABNORMAL)
         ↓
-    XGBoost (Failure Risk Prediction: 0–100%)
+    XGBoost (Supervised Failure Risk Prediction: 0–100%)
+        ↓
+  Diagnosis Model (Failure Type / Mode Identification)
         ↓
 Machine Health Score (0–100%)
         ↓
@@ -77,7 +79,8 @@ Dataset: **AI4I 2020 Predictive Maintenance Dataset** ($10,000$ machine operatin
 | Model | Purpose | Metrics (Test Set) |
 | :--- | :--- | :--- |
 | **Isolation Forest** | Unsupervised Anomaly Detection (`NORMAL` / `ABNORMAL`) | Contamination $\alpha = 0.034$ |
-| **XGBoost Classifier** | Supervised Failure Risk Classification (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`) | **Accuracy: 97.47%** \| **Recall: 94.12%** \| ROC-AUC: 0.9886 \| PR-AUC: 0.9277 |
+| **XGBoost Classifier** | Supervised Failure Risk Prediction (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`) | **Accuracy: 97.47%** \| **Recall: 94.12%** \| ROC-AUC: 0.9886 \| PR-AUC: 0.9277 |
+| **Diagnosis Model** | Multi-Label Failure Type / Mode Identification (`TWF`, `HDF`, `PWF`, `OSF`, `RNF`) | Random Forest / Rule-Based Diagnostic Classifier |
 
 ---
 
@@ -97,13 +100,10 @@ Dataset: **AI4I 2020 Predictive Maintenance Dataset** ($10,000$ machine operatin
 - Node.js 18+
 
 ### 1. Environment Setup
-No external database installation required. SQLite initializes automatically upon backend launch.
+No external database installation required. SQLite initializes automatically upon backend launch (`machineguard.db`).
 
 ### 2. Backend Setup
 ```bash
-# Navigate to project directory
-cd backend
-
 # Install Python dependencies
 pip install -r requirements.txt
 
@@ -139,9 +139,7 @@ python -m scratch.verify_all
 >
 > When machine sensor data—such as temperature, speed, torque, and tool wear—is ingested, FastAPI processes the telemetry and engineers two key domain features: Temperature Difference ($\Delta T$) and Mechanical Power ($P$).
 >
-> We employ a dual-model ML approach:
-> 1. An unsupervised **Isolation Forest** model detects operational anomalies (`NORMAL` or `ABNORMAL`).
-> 2. A supervised **XGBoost Classifier** predicts failure risk probability, achieving **97.47% accuracy and 94.12% recall** on the AI4I dataset.
+> **Isolation Forest is used for unsupervised anomaly detection, while XGBoost predicts machine failure risk (achieving 97.47% accuracy and 94.12% recall on the AI4I dataset). A separate diagnosis model helps identify the possible failure type.**
 >
 > From these outputs, a consolidated Machine Health Score ($0-100\%$) is computed and updated on the machine's software Digital Twin in SQLite. If health degrades or high risk is predicted, automated alerts are generated. Operators can run isolated **What-If simulations** to test hypothetical operating conditions without altering database records, and trigger maintenance workflows that restore the machine to a healthy baseline state once completed."
 
@@ -153,26 +151,23 @@ python -m scratch.verify_all
 MACHINEGUARD/
 ├── backend/
 │   ├── app/
-│   │   ├── api/v1/api.py       # REST API Endpoints
-│   │   ├── core/               # Database & Settings Config
-│   │   ├── ml/                 # Training & Inference Engines
-│   │   ├── models/             # SQLAlchemy Database Models
-│   │   ├── schemas/            # Pydantic Request/Response Models
-│   │   ├── services/           # Alert & State Engines
-│   │   └── simulation/         # Sensor Generator
-│   ├── main.py                 # FastAPI Application Entrypoint
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── components/         # Reusable UI Elements
-│   │   ├── pages/              # Dashboard, Machines, What-If, Alerts, Maintenance
-│   │   ├── api/client.ts       # API Client
-│   │   └── App.tsx
-│   └── package.json
-├── models/                     # Saved Models & Registry JSON
-├── data/                       # AI4I 2020 Dataset
-├── .env                        # Local Environment Config
-├── .env.example                # Template Environment File
-├── .gitignore
-└── README.md
+│   │   ├── ml/
+│   │   │   ├── train.py          # XGBoost & Isolation Forest model training script
+│   │   │   └── inference.py      # Real-time ML inference & health score calculation
+│   │   ├── api.py                # All FastAPI REST endpoints
+│   │   ├── config.py             # Global settings & CORS configuration
+│   │   ├── database.py           # SQLite database connection & fleet seed
+│   │   ├── main.py               # FastAPI application entry point
+│   │   ├── models.py             # SQLAlchemy ORM database models
+│   │   ├── schemas.py            # Pydantic data schemas
+│   │   ├── services.py           # Combined state engine & alert rule engine
+│   │   └── simulation.py         # Telemetry stream simulator
+│   └── tests/
+│       └── test_api.py           # Pytest test suite (8/8 passing)
+├── frontend/                     # React 18 + TypeScript + Vite frontend
+├── models/                       # Trained ML models & model registry
+├── screenshots/                  # Clean application UI screenshots
+├── requirements.txt              # Python dependencies list
+├── .gitignore                    # Excludes machineguard.db, .env, node_modules/
+└── README.md                     # Project documentation
 ```
